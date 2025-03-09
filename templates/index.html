@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Question Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .section {
+            margin-bottom: 20px;
+        }
+        .text-display {
+            border: 1px solid #ccc;
+            padding: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .cards-container {
+            display: flex;
+            flex-direction: column;
+        }
+        .card {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>PDF Question Generator</h1>
+        
+        <!-- Section: PDF Upload and Text Extraction -->
+        <div class="section">
+            <h2>Upload a PDF</h2>
+            <input type="file" id="fileInput">
+            <button onclick="handleUpload()">Extract Text</button>
+        </div>
+
+        <!-- Display extracted text if available -->
+        <div class="section" id="extractedTextSection" style="display: none;">
+            <h2>Extracted Text</h2>
+            <div class="text-display" id="extractedText"></div>
+        </div>
+
+        <!-- Section: Question Generation -->
+        <div class="section" id="questionGenerationSection" style="display: none;">
+            <h2>Generate Questions</h2>
+            <label for="difficulty">Select Difficulty: </label>
+            <select id="difficulty">
+                <option value="easy">Easy</option>
+                <option value="medium">Medium</option>
+                <option value="hard">Hard</option>
+            </select>
+            <button onclick="handleGenerateQuestions()">Generate Questions</button>
+        </div>
+
+        <!-- Section: Display Generated Questions -->
+        <div class="section" id="questionsSection" style="display: none;">
+            <h2>Generated Questions</h2>
+            <div class="cards-container" id="questionsContainer"></div>
+        </div>
+    </div>
+
+    <script>
+        let extractedText = '';
+
+        function handleFileChange(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const formData = new FormData();
+                formData.append('file', file);
+                fetch('http://localhost:5000/upload', {
+                    method: 'POST',
+                    body: formData,
+                })
+                .then(response => response.json())
+                .then(data => {
+                    extractedText = data.text;
+                    document.getElementById('extractedText').innerText = extractedText;
+                    document.getElementById('extractedTextSection').style.display = 'block';
+                    document.getElementById('questionGenerationSection').style.display = 'block';
+                })
+                .catch(error => console.error('Error uploading file:', error));
+            }
+        }
+
+        function handleUpload() {
+            const fileInput = document.getElementById('fileInput');
+            handleFileChange({ target: { files: fileInput.files } });
+        }
+
+        function handleGenerateQuestions() {
+            const difficulty = document.getElementById('difficulty').value;
+            fetch('http://localhost:5000/generate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    text: extractedText,
+                    difficulty: difficulty,
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                const questionsContainer = document.getElementById('questionsContainer');
+                questionsContainer.innerHTML = '';
+                data.questions.forEach((question, index) => {
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.innerHTML = `
+                        <h3>Question ${index + 1}</h3>
+                        <p>${question.question}</p>
+                        
+                    `;
+                    questionsContainer.appendChild(card);
+                });
+                document.getElementById('questionsSection').style.display = 'block';
+            })
+            .catch(error => console.error('Error generating questions:', error));
+        }
+    </script>
+</body>
+</html>

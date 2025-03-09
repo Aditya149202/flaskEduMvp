@@ -1,0 +1,36 @@
+# Byte-compiled / cached files
+__pycache__/
+*.py[cod]
+*.swp
+
+# Virtual environment
+venv/
+env/
+
+# Environment variables & secret files
+.env
+*.secret
+
+# Logs & Database
+*.log
+instance/
+db.sqlite3
+migrations/
+
+# IDE and Editor files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# OS-generated files
+.DS_Store
+Thumbs.db
+
+# Pip dependencies
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Compiled C files
+*.so
+.uploads/
